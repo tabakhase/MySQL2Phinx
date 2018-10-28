@@ -434,9 +434,42 @@ function getIndentation($level)
     return str_repeat('    ', $level);
 }
 
+function getCliParamOffset($count, $argv, $opt, $val = false)
+{
+    if (in_array('-' . $opt, $argv) && $val !== false && in_array($val, $argv)) {
+        // -x val
+        $count = $count + 2;
+    } elseif (in_array('-' . $opt . $val, $argv) && $val !== false) {
+        // -x"val"
+        $count++;
+    } elseif (in_array('-' . $opt, $argv) && $argv === false) {
+        // -x
+        $count++;
+    }
+    return $count;
+}
+
 $cfgMigrationNamespace = ''; # empty = none
 
 $cfgMigrationBaseClass = 'Phinx\Migration\AbstractMigration';
+
+$cliParams = getopt('n:b:');
+$cliCount = 1; // offset for __SELF__
+foreach ($cliParams AS $cliOpt => $cliVal) {
+    switch ($cliOpt) {
+        case 'n':
+            $cfgMigrationNamespace = $cliVal;
+            $cliCount = getCliParamOffset($cliCount, $argv, $cliOpt, $cliVal);
+            break;
+        case 'b':
+            $cfgMigrationBaseClass = $cliVal;
+            $cliCount = getCliParamOffset($cliCount, $argv, $cliOpt, $cliVal);
+            break;
+    }
+}
+// slice out args used in getopt
+$argv = array_merge(array($argv[0]), array_slice($argv, $cliCount));
+$argc = count($argv);
 
 $connection = getMysqliConnection([
     'name' => $argv[1],
