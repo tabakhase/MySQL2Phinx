@@ -434,6 +434,8 @@ function getIndentation($level)
     return str_repeat('    ', $level);
 }
 
+$cfgMigrationNamespace = ''; # empty = none
+
 $connection = getMysqliConnection([
     'name' => $argv[1],
     'user' => $argv[2],
@@ -447,6 +449,10 @@ if (!$connection) {
 }
 
 echo '<?php' . PHP_EOL;
+if(!empty($cfgMigrationNamespace)){
+    echo 'namespace '.$cfgMigrationNamespace.';' . PHP_EOL;
+}
+echo PHP_EOL;
 echo 'use Phinx\Migration\AbstractMigration;' . PHP_EOL;
 echo 'use Phinx\Db\Adapter\MysqlAdapter;' . PHP_EOL;
 echo PHP_EOL;
