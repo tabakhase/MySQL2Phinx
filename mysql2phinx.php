@@ -59,14 +59,11 @@ function createMigration($mysqli, $indent = 2)
 function getTables($mysqli, $views=false)
 {
     $res = $mysqli->query('SHOW FULL TABLES WHERE Table_type '.($views?'=':'!=').' \'VIEW\'');
-    $buff = array_map(function ($a) {
-        return $a[0];
-    }, $res->fetch_all());
     $newbuff = array();
-    foreach ($buff as $k => $t) {
-        if (in_array($t, getBlacklist()))
+    while ( $line = $res->fetch_array(MYSQLI_NUM) ) {
+        if (in_array($line[0], getBlacklist()))
             continue;
-        $newbuff[] = $t;
+        $newbuff[] = $line[0];
     }
     return $newbuff;
 }
@@ -363,12 +360,22 @@ function getPhinxColumnAttibutes($phinxtype, $columndata, $tableInformation)
 
 function getColumns($table, $mysqli)
 {
-    return $mysqli->query("SHOW FULL COLUMNS FROM `{$table}`")->fetch_all(MYSQLI_ASSOC);
+    $res = $mysqli->query("SHOW FULL COLUMNS FROM `{$table}`");
+    $newbuff = array();
+    while ( $line = $res->fetch_array(MYSQLI_ASSOC) ) {
+        $newbuff[] = $line;
+    }
+    return $newbuff;
 }
 
 function getIndexes($table, $mysqli)
 {
-    return $mysqli->query("SHOW INDEXES FROM `{$table}`")->fetch_all(MYSQLI_ASSOC);
+    $res = $mysqli->query("SHOW INDEXES FROM `{$table}`");
+    $newbuff = array();
+    while ( $line = $res->fetch_array(MYSQLI_ASSOC) ) {
+        $newbuff[] = $line;
+    }
+    return $newbuff;
 }
 
 function getTableInformation($table, $mysqli)
@@ -378,7 +385,7 @@ function getTableInformation($table, $mysqli)
 
 function getForeignKeys($table, $mysqli)
 {
-    return $mysqli->query(
+    $res = $mysqli->query(
         "SELECT
             cols.TABLE_NAME,
             cols.COLUMN_NAME,
@@ -406,7 +413,12 @@ function getForeignKeys($table, $mysqli)
             AND refs.REFERENCED_TABLE_NAME IS NOT NULL
             AND cons.CONSTRAINT_TYPE = 'FOREIGN KEY'
         ;"
-    )->fetch_all(MYSQLI_ASSOC);
+    );
+    $newbuff = array();
+    while ( $line = $res->fetch_array(MYSQLI_ASSOC) ) {
+        $newbuff[] = $line;
+    }
+    return $newbuff;
 }
 
 function getIndentation($level)
