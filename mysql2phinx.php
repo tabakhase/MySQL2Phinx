@@ -18,6 +18,10 @@ if ($argc < 4) {
     exit;
 }
 
+/**
+ * @param array $config
+ * @return mysqli
+ */
 function getMysqliConnection($config)
 {
     return new mysqli(
@@ -29,6 +33,9 @@ function getMysqliConnection($config)
     );
 }
 
+/**
+ * @return array
+ */
 function getBlacklist()
 {
     return array(
@@ -36,6 +43,11 @@ function getBlacklist()
     );
 }
 
+/**
+ * @param mysqli $mysqli
+ * @param int|null $indent
+ * @return string
+ */
 function createMigration($mysqli, $indent = 2)
 {
     $tables = getTables($mysqli, false);
@@ -56,6 +68,11 @@ function createMigration($mysqli, $indent = 2)
     return implode(PHP_EOL, $output) . PHP_EOL ;
 }
 
+/**
+ * @param mysqli $mysqli
+ * @param bool|null $views
+ * @return array
+ */
 function getTables($mysqli, $views=false)
 {
     $res = $mysqli->query('SHOW FULL TABLES WHERE Table_type '.($views?'=':'!=').' \'VIEW\'');
@@ -68,6 +85,12 @@ function getTables($mysqli, $views=false)
     return $newbuff;
 }
 
+/**
+ * @param string $table
+ * @param mysqli $mysqli
+ * @param int $indent
+ * @return string
+ */
 function getTableMigration($table, $mysqli, $indent)
 {
     $ind = getIndentation($indent);
@@ -116,6 +139,12 @@ function getTableMigration($table, $mysqli, $indent)
     return implode(PHP_EOL, $output);
 }
 
+/**
+ * @param array $columndata
+ * @param int $indent
+ * @param array $tableInformation
+ * @return string
+ */
 function getColumnMigration($columndata, $indent, $tableInformation)
 {
     $ind = getIndentation($indent);
@@ -126,6 +155,11 @@ function getColumnMigration($columndata, $indent, $tableInformation)
     return $output;
 }
 
+/**
+ * @param array $indexes
+ * @param int $indent
+ * @return string
+ */
 function getIndexMigrations($indexes, $indent)
 {
     $ind = getIndentation($indent);
@@ -162,6 +196,11 @@ function getIndexMigrations($indexes, $indent)
     return implode(PHP_EOL, $output);
 }
 
+/**
+ * @param array $foreignKeys
+ * @param int $indent
+ * @return string
+ */
 function getForeignKeysMigrations($foreignKeys, $indent)
 {
     $ind = getIndentation($indent);
@@ -200,12 +239,20 @@ function getForeignKeysMigrations($foreignKeys, $indent)
     return implode(PHP_EOL, $output);
 }
 
+/**
+ * @param array $columndata
+ * @return string|null
+ */
 function getMySQLColumnType($columndata)
 {
     preg_match('/^[a-z]+/', $columndata['Type'], $match);
     return $match[0];
 }
 
+/**
+ * @param array $columndata
+ * @return string
+ */
 function getPhinxColumnType($columndata)
 {
     $type = getMySQLColumnType($columndata);
@@ -253,6 +300,12 @@ function getPhinxColumnType($columndata)
     }
 }
 
+/**
+ * @param string $phinxtype
+ * @param array $columndata
+ * @param array $tableInformation
+ * @return string
+ */
 function getPhinxColumnAttibutes($phinxtype, $columndata, $tableInformation)
 {
     $attributes = [];
@@ -358,6 +411,11 @@ function getPhinxColumnAttibutes($phinxtype, $columndata, $tableInformation)
     return '[' . implode(', ', $attributes) . ']';
 }
 
+/**
+ * @param string $table
+ * @param mysqli $mysqli
+ * @return array
+ */
 function getColumns($table, $mysqli)
 {
     $res = $mysqli->query("SHOW FULL COLUMNS FROM `{$table}`");
@@ -368,6 +426,11 @@ function getColumns($table, $mysqli)
     return $newbuff;
 }
 
+/**
+ * @param string $table
+ * @param mysqli $mysqli
+ * @return array
+ */
 function getIndexes($table, $mysqli)
 {
     $res = $mysqli->query("SHOW INDEXES FROM `{$table}`");
@@ -378,11 +441,21 @@ function getIndexes($table, $mysqli)
     return $newbuff;
 }
 
+/**
+ * @param string $table
+ * @param mysqli $mysqli
+ * @return array
+ */
 function getTableInformation($table, $mysqli)
 {
     return $mysqli->query("SHOW TABLE STATUS WHERE Name = '{$table}'")->fetch_array(MYSQLI_ASSOC);
 }
 
+/**
+ * @param string $table
+ * @param mysqli $mysqli
+ * @return array
+ */
 function getForeignKeys($table, $mysqli)
 {
     $res = $mysqli->query(
@@ -421,11 +494,22 @@ function getForeignKeys($table, $mysqli)
     return $newbuff;
 }
 
+/**
+ * @param int $level
+ * @return string
+ */
 function getIndentation($level)
 {
     return str_repeat('    ', $level);
 }
 
+/**
+ * @param int $count
+ * @param array $argv
+ * @param string $opt
+ * @param bool|null $val
+ * @return int
+ */
 function getCliParamOffset($count, $argv, $opt, $val = false)
 {
     if (in_array('-' . $opt, $argv) && $val !== false && in_array($val, $argv)) {
