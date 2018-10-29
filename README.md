@@ -32,7 +32,11 @@ $ php -f mysql2phinx.php -- -c "InitialCreate" [database] [user] [password] > 12
 
 The `id` column will be unsigned. Phinx does not currently supported unsigned primary columns. There is [a workaround](https://github.com/robmorgan/phinx/issues/250).
 
-MySQL `VIEW`s are **not supported** and will be silently skipped!
+MySQL `VIEW`s are not agnostic and not natively supported by Phinx - so hack via execute().
+- having `DEFINER=user@...` in the definition may bite you - remove it?  
+(might require the SET_USER_ID or SUPER privilege on migration)
+- `DROP VIEW` is no actual rollback!  
+(But this may be OK given this migration is usually the very first...)
 
 ### TODOs
 
