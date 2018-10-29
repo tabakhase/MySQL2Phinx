@@ -34,25 +34,13 @@ function createMigration($mysqli, $indent = 2)
     $tables = getTables($mysqli);
 
     $output = [];
-    $output[] = '    public function up()';
+    $output[] = '    public function change()';
     $output[] = '    {';
-    $output[] = '        // Making sure no foreign key constraints stops the creation';
+    $output[] = '        // Making sure no foreign key constraints stops the migration';
     $output[] = '        $this->execute(\'SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;\');';
     $output[] = '';
     foreach ($tables as $table) {
         $output[] = getTableMigration($table, $mysqli, $indent);
-    }
-    $output[] = '        // Resetting the default foreign key check';
-    $output[] = '        $this->execute(\'SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;\');';
-    $output[] = '    }';
-    $output[] = '';
-    $output[] = '    public function down()';
-    $output[] = '    {';
-    $output[] = '        // Making sure no foreign key constraints stops the creation';
-    $output[] = '        $this->execute(\'SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;\');';
-    $output[] = '';
-    foreach ($tables as $table) {
-        $output[] = getTableReversion($table, $mysqli, $indent);
     }
     $output[] = '        // Resetting the default foreign key check';
     $output[] = '        $this->execute(\'SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;\');';
@@ -122,18 +110,6 @@ function getTableMigration($table, $mysqli, $indent)
 
     $output[] = $ind . '    ->create()';
     $output[] = $ind . ';';
-    $output[] = '';
-
-    return implode(PHP_EOL, $output);
-}
-
-function getTableReversion($table, $mysqli, $indent)
-{
-    $ind = getIndentation($indent);
-
-    $output = [];
-    $output[] = "{$ind}// Reversion for table {$table}";
-    $output[] = "{$ind}\$this->dropTable('{$table}');";
     $output[] = '';
 
     return implode(PHP_EOL, $output);
