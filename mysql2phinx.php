@@ -29,6 +29,13 @@ function getMysqliConnection($config)
     );
 }
 
+function getBlacklist()
+{
+    return array(
+        'phinxlog',
+    );
+}
+
 function createMigration($mysqli, $indent = 2)
 {
     $tables = getTables($mysqli, false);
@@ -52,15 +59,12 @@ function createMigration($mysqli, $indent = 2)
 function getTables($mysqli, $views=false)
 {
     $res = $mysqli->query('SHOW FULL TABLES WHERE Table_type '.($views?'=':'!=').' \'VIEW\'');
-    $blacklist = array(
-        'phinxlog',
-    );
     $buff = array_map(function ($a) {
         return $a[0];
     }, $res->fetch_all());
     $newbuff = array();
     foreach ($buff as $k => $t) {
-        if (in_array($t, $blacklist))
+        if (in_array($t, getBlacklist()))
             continue;
         $newbuff[] = $t;
     }
