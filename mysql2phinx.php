@@ -433,7 +433,9 @@ $cfgMigrationNamespace = ''; # empty = none
 
 $cfgMigrationBaseClass = 'Phinx\Migration\AbstractMigration';
 
-$cliParams = getopt('n:b:');
+$cfgMigrationClass = 'InitialMigration';
+
+$cliParams = getopt('n:b:c:');
 $cliCount = 1; // offset for __SELF__
 foreach ($cliParams AS $cliOpt => $cliVal) {
     switch ($cliOpt) {
@@ -443,6 +445,10 @@ foreach ($cliParams AS $cliOpt => $cliVal) {
             break;
         case 'b':
             $cfgMigrationBaseClass = $cliVal;
+            $cliCount = getCliParamOffset($cliCount, $argv, $cliOpt, $cliVal);
+            break;
+        case 'c':
+            $cfgMigrationClass = $cliVal;
             $cliCount = getCliParamOffset($cliCount, $argv, $cliOpt, $cliVal);
             break;
     }
@@ -471,7 +477,7 @@ echo PHP_EOL;
 echo 'use ' . $cfgMigrationBaseClass . ';' . PHP_EOL;
 echo 'use Phinx\Db\Adapter\MysqlAdapter;' . PHP_EOL;
 echo PHP_EOL;
-echo 'class InitialMigration extends '.(substr(strrchr($cfgMigrationBaseClass, '\\'), 1) ?: $cfgMigrationBaseClass) . PHP_EOL;
+echo 'class ' . $cfgMigrationClass . ' extends '.(substr(strrchr($cfgMigrationBaseClass, '\\'), 1) ?: $cfgMigrationBaseClass) . PHP_EOL;
 echo '{' . PHP_EOL;
 echo createMigration($connection);
 echo '}' . PHP_EOL;

@@ -22,6 +22,12 @@ Use a `migration_base_class` other than `Phinx\Migration\AbstractMigration` usin
 $ php -f mysql2phinx.php -- -b "My\Db\AbstractMigration" [database] [user] [password] > migration.php
 ```
 
+### custom Migration Name
+Defaults to `InitialMigration` change using `-c ""`
+```
+$ php -f mysql2phinx.php -- -c "InitialCreate" [database] [user] [password] > 123_initial_create.php
+```
+
 ## Caveat
 
 The `id` column will be unsigned. Phinx does not currently supported unsigned primary columns. There is [a workaround](https://github.com/robmorgan/phinx/issues/250).
