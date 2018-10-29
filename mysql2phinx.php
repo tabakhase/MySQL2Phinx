@@ -52,6 +52,8 @@ function createMigration($mysqli, $indent = 2)
 {
     $tables = getTables($mysqli, false);
 
+    $views = getTables($mysqli, true);
+
     $output = [];
     $output[] = '    public function change()';
     $output[] = '    {';
@@ -60,6 +62,19 @@ function createMigration($mysqli, $indent = 2)
     $output[] = '';
     foreach ($tables as $table) {
         $output[] = getTableMigration($table, $mysqli, $indent);
+    }
+    if($views) {
+        $output[] = '';
+        $output[] = '        /**';
+        $output[] = '         * Views are not agnostic and not supported by Phinx - so hack via execute.';
+        $output[] = '         *  - having \'DEFINER=...\' may bite you! (might require the SET_USER_ID or SUPER privilege)';
+        $output[] = '         *  - DROP VIEW is no actual rollback!';
+        $output[] = '         * But both of this may be OK given this migration is usually the very first...';
+        $output[] = '         */';
+        $output[] = '';
+        foreach ($views as $view) {
+            $output[] = getViewMigration($view, $mysqli, $indent);
+        }
     }
     $output[] = '        // Resetting the default foreign key check';
     $output[] = '        $this->execute(\'SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;\');';
@@ -235,6 +250,30 @@ function getForeignKeysMigrations($foreignKeys, $indent)
             . "'update' => '" . str_replace(' ', '_', $foreignKey['UPDATE_RULE']) . "'"
         . "])";
     }
+
+    return implode(PHP_EOL, $output);
+}
+
+/**
+ * @param string $view
+ * @param mysqli $mysqli
+ * @param int $indent
+ * @return string
+ */
+function getViewMigration($view, $mysqli, $indent)
+{
+    $ind = getIndentation($indent);
+
+    $viewInformation = getViewInformation($view, $mysqli);
+
+    $output = [];
+    $output[] = "{$ind}// Migration for view {$view}";
+    $output[] = $ind . 'if ($this->isMigratingUp()) {';
+    $output[] = $ind . $ind . '$this->execute(\'' . addcslashes($viewInformation['Create View'], "'\\") . '\');';
+    $output[] = $ind . '} else {';
+    $output[] = $ind . $ind . '$this->execute(\'DROP VIEW `' . $view . '`\');';
+    $output[] = $ind . '}';
+    $output[] = '';
 
     return implode(PHP_EOL, $output);
 }
@@ -449,6 +488,16 @@ function getIndexes($table, $mysqli)
 function getTableInformation($table, $mysqli)
 {
     return $mysqli->query("SHOW TABLE STATUS WHERE Name = '{$table}'")->fetch_array(MYSQLI_ASSOC);
+}
+
+/**
+ * @param string $view
+ * @param mysqli $mysqli
+ * @return array
+ */
+function getViewInformation($view, $mysqli)
+{
+    return $mysqli->query("SHOW CREATE VIEW `{$view}`")->fetch_array(MYSQLI_ASSOC);
 }
 
 /**
