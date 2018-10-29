@@ -26,6 +26,8 @@ $ php -f mysql2phinx.php -- -b "My\Db\AbstractMigration" [database] [user] [pass
 
 The `id` column will be unsigned. Phinx does not currently supported unsigned primary columns. There is [a workaround](https://github.com/robmorgan/phinx/issues/250).
 
+MySQL `VIEW`s are **not supported** and will be silently skipped!
+
 ### TODOs
 
 Not all phinx functionality is covered! **Check your migration code before use!**
