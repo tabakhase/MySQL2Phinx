@@ -31,7 +31,7 @@ function getMysqliConnection($config)
 
 function createMigration($mysqli, $indent = 2)
 {
-    $tables = getTables($mysqli);
+    $tables = getTables($mysqli, false);
 
     $output = [];
     $output[] = '    public function change()';
@@ -49,9 +49,9 @@ function createMigration($mysqli, $indent = 2)
     return implode(PHP_EOL, $output) . PHP_EOL ;
 }
 
-function getTables($mysqli)
+function getTables($mysqli, $views=false)
 {
-    $res = $mysqli->query('SHOW TABLES');
+    $res = $mysqli->query('SHOW FULL TABLES WHERE Table_type '.($views?'=':'!=').' \'VIEW\'');
     $blacklist = array(
         'phinxlog',
     );
